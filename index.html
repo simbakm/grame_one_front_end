@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrameOne Central - Content & Subscription Management</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Chart.js CDN for dynamic graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div id="app">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">G</div>
+        <div class="sidebar-title">GrameOne</div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Overview Group -->
+        <div>
+          <div class="nav-group-label">Overview</div>
+          <ul class="nav-list">
+            <li class="nav-item active" data-view="dashboard">
+              <a href="#/dashboard">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Dashboard
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Academic Hierarchy Group -->
+        <div>
+          <div class="nav-group-label">Academic Hierarchy</div>
+          <ul class="nav-list">
+            <li class="nav-item" data-view="hierarchy">
+              <a href="#/hierarchy">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                Interactive Drilldown
+              </a>
+            </li>
+            <li class="nav-item" data-view="grades">
+              <a href="#/grades">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                Grades
+              </a>
+            </li>
+            <li class="nav-item" data-view="subjects">
+              <a href="#/subjects">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Subjects
+              </a>
+            </li>
+            <li class="nav-item" data-view="topics">
+              <a href="#/topics">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10M7 17h10"/></svg>
+                Topics
+              </a>
+            </li>
+            <li class="nav-item" data-view="units">
+              <a href="#/units">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                Units
+              </a>
+            </li>
+            <li class="nav-item" data-view="concepts">
+              <a href="#/concepts">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                Concepts
+              </a>
+            </li>
+            <li class="nav-item" data-view="questions">
+              <a href="#/questions">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Questions
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Distribution & Publishing -->
+        <div>
+          <div class="nav-group-label">Publishing & Imports</div>
+          <ul class="nav-list">
+            <li class="nav-item" data-view="csv-import">
+              <a href="#/csv-import">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                CSV Import
+              </a>
+            </li>
+            <li class="nav-item" data-view="package-publishing">
+              <a href="#/package-publishing">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                Package Publisher
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Subscriptions & System -->
+        <div>
+          <div class="nav-group-label">Administration</div>
+          <ul class="nav-list">
+            <li class="nav-item" data-view="licenses">
+              <a href="#/licenses">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                Licenses
+              </a>
+            </li>
+            <li class="nav-item" data-view="subscriptions">
+              <a href="#/subscriptions">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                Subscription Plans
+              </a>
+            </li>
+            <li class="nav-item" data-view="system-metrics">
+              <a href="#/system-metrics">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                System Metrics
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="search-box">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="global-search" placeholder="Search grades, subjects, questions, licenses...">
+        </div>
+
+        <div class="user-profile">
+          <div class="status-indicator">
+            <span class="dot-online"></span>
+            <span>Supabase & R2 Online</span>
+          </div>
+          <div class="avatar">A</div>
+        </div>
+      </header>
+
+      <!-- Dynamic Page Content Container -->
+      <main id="content-view">
+        <!-- Injected via app.js -->
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal Dialog: Generate License Code -->
+  <div class="modal-overlay" id="modal-license-generate">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">Generate Activation Code</div>
+        <button class="btn btn-secondary" onclick="closeModal('modal-license-generate')">✕</button>
+      </div>
+      <form id="form-license-generate">
+        <div class="form-group">
+          <label>Subscription Plan / Duration</label>
+          <select class="form-control" id="license-duration">
+            <option value="4">4 Months (Term Package)</option>
+            <option value="8">8 Months (2 Terms Package)</option>
+            <option value="12" selected>12 Months (Annual Package)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" class="form-control" id="license-qty" value="1" min="1" max="100">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-license-generate')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Generate Code(s)</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Dialog: Publish Grade Package -->
+  <div class="modal-overlay" id="modal-package-publish">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">Publish Grade Package</div>
+        <button class="btn btn-secondary" onclick="closeModal('modal-package-publish')">✕</button>
+      </div>
+      <form id="form-package-publish">
+        <div class="form-group">
+          <label>Select Grade</label>
+          <select class="form-control" id="publish-grade-id">
+            <option value="1">Grade 1</option>
+            <option value="2">Grade 2</option>
+            <option value="3">Grade 3</option>
+            <option value="4">Grade 4</option>
+            <option value="5" selected>Grade 5</option>
+            <option value="6">Grade 6</option>
+            <option value="7">Grade 7</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Release Notes / Changelog</label>
+          <textarea class="form-control" id="publish-changelog" rows="3" placeholder="Describe content updates in this version..."></textarea>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-package-publish')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Build & Upload to Cloudflare R2</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
