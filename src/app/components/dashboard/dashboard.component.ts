@@ -10,12 +10,12 @@ Chart.register(...registerables);
   standalone: true,
   imports: [CommonModule, RouterLink],
   template: `
-    <div class="content-header">
+    <div class="content-header dashboard-header">
       <div>
         <div class="breadcrumbs">Overview &rsaquo; System Summary</div>
         <h1 class="page-title">Dashboard</h1>
       </div>
-      <div style="display:flex; gap:0.75rem; align-items:center;">
+      <div class="header-actions">
         @if (loading) {
           <span style="font-size:0.82rem; color:var(--text-muted);">⟳ Loading live data...</span>
         }
@@ -232,6 +232,39 @@ Chart.register(...registerables);
       opacity: 0.5;
       animation: pulse 1.2s ease-in-out infinite alternate;
     }
+
+    .dashboard-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding: 1.5rem 0 0;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    @media (max-width: 720px) {
+      .dashboard-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .header-actions {
+        justify-content: flex-start;
+      }
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+
     @keyframes pulse {
       from { opacity: 0.3; }
       to { opacity: 0.7; }
@@ -297,15 +330,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!this.growthChartRef?.nativeElement) return;
     if (this.growthChartInstance) this.growthChartInstance.destroy();
 
-    const { labels, data } = this.stats!.activationsByMonth;
+    const raw = this.stats!.activationsByMonth;
+    const normalized = this.buildLastSixMonthsSeries(raw.labels, raw.data);
 
     this.growthChartInstance = new Chart(this.growthChartRef.nativeElement, {
       type: 'line',
       data: {
-        labels,
+        labels: normalized.labels,
         datasets: [{
           label: 'Mobile Activations',
-          data,
+          data: normalized.data,
           borderColor: '#10b981',
           backgroundColor: 'rgba(16,185,129,0.12)',
           fill: true,
@@ -328,6 +362,27 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         }
       }
     });
+  }
+
+  private buildLastSixMonthsSeries(labels: string[], values: number[]) {
+    const now = new Date();
+    const monthKeys = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+      return date.toLocaleString('default', { month: 'short' });
+    });
+
+    const rawMap = new Map<string, number>();
+    if (labels && values) {
+      labels.forEach((label, index) => {
+        const key = label?.toString().slice(0, 3);
+        if (key) {
+          rawMap.set(key, values[index] ?? 0);
+        }
+      });
+    }
+
+    const data = monthKeys.map((monthKey) => rawMap.get(monthKey) ?? 0);
+    return { labels: monthKeys, data };
   }
 
   private renderDistributionChart() {
