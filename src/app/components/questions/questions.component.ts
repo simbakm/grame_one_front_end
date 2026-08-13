@@ -273,7 +273,7 @@ interface TopicGroup {
                                   <!-- Picture / Diagram -->
                                   @if (q.imageUrl || q.diagramUrl) {
                                     <div style="margin-bottom:0.75rem; background:var(--bg-card); padding:0.5rem; border-radius:8px; text-align:center;">
-                                      <img [src]="q.imageUrl || q.diagramUrl" style="max-height:220px; max-width:100%; border-radius:6px; object-fit:contain;" alt="Question Picture" />
+                                      <img [src]="resolveImageUrl(q.imageUrl || q.diagramUrl)" style="max-height:220px; max-width:100%; border-radius:6px; object-fit:contain;" alt="Question Picture" />
                                     </div>
                                   }
 
@@ -582,6 +582,20 @@ export class QuestionsComponent implements OnInit {
 
   getShowingEnd(): number {
     return Math.min(this.displayedCount, this.filteredQuestions.length);
+  }
+
+  resolveImageUrl(rawUrl?: string): string {
+    if (!rawUrl || !rawUrl.trim()) return '';
+    const url = rawUrl.trim();
+    if (url.includes('cloudflarestorage.com')) {
+      const parts = url.split('/grameone/');
+      const key = parts.length > 1 ? parts[1] : url;
+      return `${environment.apiUrl}/media/files/${key}`;
+    }
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    return `${environment.apiUrl}/media/files/${url}`;
   }
 
   // Inline Question Editing
