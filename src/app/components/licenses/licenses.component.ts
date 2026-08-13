@@ -167,7 +167,7 @@ import { ApiService, License } from '../../services/api.service';
                       <span>{{ lic.subscriptionDurationMonths || 12 }}M Plan</span>
                     }
                   </td>
-                  <td><span class="badge" [class]="getBadgeClass(lic.status)">{{ lic.status }}</span></td>
+                  <td><span class="badge" [class]="getBadgeClass(getEffectiveStatus(lic))">{{ getEffectiveStatus(lic) }}</span></td>
                   <td style="font-size:0.8rem; color:var(--text-muted);">{{ lic.deviceId || '—' }}</td>
                   <td>{{ lic.activationDate ? (lic.activationDate | date:'mediumDate') : '—' }}</td>
                   <td [style.color]="isExpiringSoon(lic.expiryDate) ? '#f59e0b' : 'inherit'">
@@ -199,7 +199,7 @@ export class LicensesComponent implements OnInit {
 
   get ordinaryCount() { return this.licenses.filter(l => l.licenseType !== 'FREE').length; }
   get freeCount() { return this.licenses.filter(l => l.licenseType === 'FREE').length; }
-  get activeCount() { return this.licenses.filter(l => l.status === 'ACTIVE').length; }
+  get activeCount() { return this.licenses.filter(l => l.status === 'ACTIVE' && !this.isExpired(l)).length; }
 
   constructor(private api: ApiService) {}
 
@@ -217,6 +217,8 @@ export class LicensesComponent implements OnInit {
     this.filterStatus = status;
     if (status === 'ALL') this.filteredLicenses = this.licenses;
     else if (status === 'ORDINARY' || status === 'FREE') this.filteredLicenses = this.licenses.filter(l => (l.licenseType || 'ORDINARY') === status);
+    else if (status === 'EXPIRED') this.filteredLicenses = this.licenses.filter(l => this.isExpired(l));
+    else if (status === 'ACTIVE') this.filteredLicenses = this.licenses.filter(l => l.status === 'ACTIVE' && !this.isExpired(l));
     else this.filteredLicenses = this.licenses.filter(l => l.status === status);
   }
 
@@ -269,12 +271,24 @@ export class LicensesComponent implements OnInit {
     }
   }
 
+  isExpired(lic: License): boolean {
+    if (lic.status === 'EXPIRED') return true;
+    const expStr = lic.expiryDate || (lic.licenseType === 'FREE' ? lic.validUntil : undefined);
+    if (!expStr) return false;
+    return new Date(expStr).getTime() < Date.now();
+  }
+
+  getEffectiveStatus(lic: License): string {
+    return this.isExpired(lic) ? 'EXPIRED' : (lic.status || 'PENDING');
+  }
+
   getBadgeClass(status: string) {
     return status === 'ACTIVE' ? 'badge badge-success' : status === 'EXPIRED' ? 'badge badge-danger' : 'badge badge-warning';
   }
 
   isExpiringSoon(date?: string): boolean {
     if (!date) return false;
-    return (new Date(date).getTime() - Date.now()) < 30 * 86400000;
+    const time = new Date(date).getTime();
+    return time > Date.now() && (time - Date.now()) < 30 * 86400000;
   }
 }

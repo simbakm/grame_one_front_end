@@ -278,7 +278,7 @@ export class CsvImportComponent {
   uploadProgress = 0;
   currentStage = '';
 
-  csvHeaders = ['Grade','Subject','Topic','Unit','Concept','QuestionNumber','QuestionText','OptionA','OptionB','OptionC','OptionD','CorrectOption','Difficulty','Explanation','ComprehensionText','ImagePath','DiagramPath'];
+  csvHeaders = ['Grade','Subject','Topic','Unit','Concept','QuestionNumber','QuestionText','OptionA','OptionB','OptionC','OptionD','CorrectOption','Difficulty','Explanation','ComprehensionText','MediaPath'];
 
   importSteps = [
     { key: 'reading',    label: 'Read File',  num: '1' },
@@ -312,10 +312,10 @@ export class CsvImportComponent {
   }
 
   downloadTemplate() {
-    const csv = "Grade,Subject,Topic,Unit,Concept,QuestionNumber,QuestionText,OptionA,OptionB,OptionC,OptionD,CorrectOption,Difficulty,Explanation,ComprehensionText,ImagePath,DiagramPath\n"
-      + "Grade 7,Mathematics,Numbers & Algebra,Unit 1: Addition,Solving Linear Equations,1,What is 2x + 5 when x = 3?,10,11,12,13,B,MEDIUM,Substitute x=3 to get 11.,,,\n"
-      + "Grade 7,English,Reading & Comprehension,Unit 1: Prose,Main Idea,2,What is the main theme of the story?,Courage,Friendship,Greed,Kindness,A,EASY,Refer to paragraph 2.,Long ago in a small village near the Zambezi river...,,\n"
-      + "Grade 7,Science,Measures & Geometry,Unit 1: Shapes,Angles,3,Which angle is shown in the diagram?,Acute,Right,Obtuse,Reflex,B,MEDIUM,90 degree angle marked in red.,,,diagram_q3.png\n";
+    const csv = "Grade,Subject,Topic,Unit,Concept,QuestionNumber,QuestionText,OptionA,OptionB,OptionC,OptionD,CorrectOption,Difficulty,Explanation,ComprehensionText,MediaPath\n"
+      + "Grade 7,Mathematics,Numbers & Algebra,Unit 1: Addition,Solving Linear Equations,1,What is 2x + 5 when x = 3?,10,11,12,13,B,MEDIUM,Substitute x=3 to get 11.,,\n"
+      + "Grade 7,English,Reading & Comprehension,Unit 1: Prose,Main Idea,2,What is the main theme of the story?,Courage,Friendship,Greed,Kindness,A,EASY,Refer to paragraph 2.,Long ago in a small village near the Zambezi river...,\n"
+      + "Grade 7,Science,Measures & Geometry,Unit 1: Shapes,Angles,3,Which angle is shown in the diagram?,Acute,Right,Obtuse,Reflex,B,MEDIUM,90 degree angle marked in red.,,diagram_q3.png\n";
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.setAttribute('href', URL.createObjectURL(blob));
