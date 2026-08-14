@@ -31,7 +31,7 @@ interface Breadcrumb { label: string; action?: () => void; }
           <h3 class="modal-title-danger">Confirm Delete</h3>
         </div>
         <div class="modal-body">
-          <p class="delete-warning-text">⚠️ You are about to permanently delete this grade and <strong>all its associated data</strong> (subjects, topics, units, concepts and questions).</p>
+          <p class="delete-warning-text">⚠️ You are about to permanently delete this {{ pendingDeleteType }} and <strong>all its associated data</strong> (including topics, units, concepts and questions).</p>
           <p class="delete-warning-text-bold">This action cannot be undone.</p>
         </div>
         <div class="modal-footer">
@@ -158,8 +158,15 @@ interface Breadcrumb { label: string; action?: () => void; }
             @for (sub of subjects; track sub.id) {
               <div class="metric-card" (click)="drillToTopics(sub)" style="cursor:pointer;">
                 <div class="metric-top">
-                  <span class="metric-title">{{ sub.language || 'English' }}</span>
-                  <div class="metric-icon-box">📖</div>
+                  <span class="metric-title">{{ sub.code }}</span>
+                  <div style="display:flex; gap:0.4rem;" (click)="$event.stopPropagation()">
+                    <button class="action-btn action-btn-delete" title="Delete subject" (click)="requestDeleteSubject(sub.id)">
+                      <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 <div class="metric-value">{{ sub.name }}</div>
                 <div class="metric-footer">Click to view topics &rarr;</div>
@@ -435,6 +442,7 @@ export class GradesComponent implements OnInit {
   // Delete confirm
   showDeleteModal = false;
   pendingDeleteId: number | null = null;
+  pendingDeleteType: 'grade' | 'subject' = 'grade';
   isDeleting = false;
 
   // Toast
@@ -557,6 +565,13 @@ export class GradesComponent implements OnInit {
 
   requestDeleteGrade(id: number) {
     this.pendingDeleteId = id;
+    this.pendingDeleteType = 'grade';
+    this.showDeleteModal = true;
+  }
+
+  requestDeleteSubject(id: number) {
+    this.pendingDeleteId = id;
+    this.pendingDeleteType = 'subject';
     this.showDeleteModal = true;
   }
 
@@ -568,19 +583,26 @@ export class GradesComponent implements OnInit {
   confirmDelete() {
     if (!this.pendingDeleteId) return;
     this.isDeleting = true;
-    this.api.deleteGrade(this.pendingDeleteId).subscribe({
+    const id = this.pendingDeleteId;
+    const type = this.pendingDeleteType;
+    const obs = type === 'subject' ? this.api.deleteSubject(id) : this.api.deleteGrade(id);
+    obs.subscribe({
       next: () => {
-        this.grades = this.grades.filter(g => g.id !== this.pendingDeleteId);
+        if (type === 'grade') {
+          this.grades = this.grades.filter(g => g.id !== id);
+        } else {
+          this.subjects = this.subjects.filter(s => s.id !== id);
+        }
         this.isDeleting = false;
         this.showDeleteModal = false;
         this.pendingDeleteId = null;
-        this.showToast('Grade deleted successfully.');
+        this.showToast(`${type === 'grade' ? 'Grade' : 'Subject'} deleted successfully.`);
       },
       error: () => {
         this.isDeleting = false;
         this.showDeleteModal = false;
         this.pendingDeleteId = null;
-        this.showToast('Failed to delete grade.', true);
+        this.showToast(`Failed to delete ${type}.`, true);
       }
     });
   }
