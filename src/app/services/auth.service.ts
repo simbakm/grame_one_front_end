@@ -22,7 +22,7 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = `${environment.apiUrl}/api`;
+  private apiUrl = environment.apiUrl;
   private currentUserSubject = new BehaviorSubject<AuthResponse | null>(this.getStoredUser());
   public currentUser$ = this.currentUserSubject.asObservable();
 

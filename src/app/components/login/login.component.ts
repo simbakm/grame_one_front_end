@@ -77,12 +77,18 @@ import { AuthService } from '../../services/auth.service';
   `,
   styles: [`
     .login-container {
-      min-height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
       padding: 20px;
+      box-sizing: border-box;
+      z-index: 99999;
     }
     .login-card {
       width: 100%;
