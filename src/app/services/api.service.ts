@@ -234,6 +234,27 @@ export class ApiService {
     return this.http.put<Question>(`${this.BASE_URL}/questions/${id}`, question, { headers: this.headers });
   }
 
+  // ---- DELETE ENDPOINTS (Cascading Delete) ----
+  deleteSubject(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.BASE_URL}/subjects/${id}`, { headers: this.headers });
+  }
+
+  deleteTopic(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.BASE_URL}/topics/${id}`, { headers: this.headers });
+  }
+
+  deleteUnit(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.BASE_URL}/units/${id}`, { headers: this.headers });
+  }
+
+  deleteConcept(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.BASE_URL}/concepts/${id}`, { headers: this.headers });
+  }
+
+  deleteQuestion(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.BASE_URL}/questions/${id}`, { headers: this.headers });
+  }
+
   // ---- LICENSES ----
   getLicenses(): Observable<License[]> {
     return this.http.get<License[]>(`${this.BASE_URL}/licenses`, { headers: this.headers }).pipe(

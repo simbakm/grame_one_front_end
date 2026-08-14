@@ -1,11 +1,13 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     <div class="app-container" [class.sidebar-open]="isSidebarOpen">
       <!-- Sidebar -->
@@ -101,6 +103,14 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
           <div>
             <div class="nav-group-label">Administration</div>
             <ul class="nav-list">
+              <li class="nav-item" routerLinkActive="active" *ngIf="isAdmin">
+                <a routerLink="/users">
+                  <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                  </svg>
+                  User Management
+                </a>
+              </li>
               <li class="nav-item" routerLinkActive="active">
                 <a routerLink="/licenses">
                   <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,12 +155,20 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
             </svg>
             <input type="text" placeholder="Search grades, subjects, questions, licenses..." (input)="onSearch($event)">
           </div>
+
           <div class="user-profile">
             <div class="status-indicator">
               <span class="dot-online"></span>
-              <span>Supabase &amp; R2 Online</span>
+              <span>{{ username }} ({{ userRole }})</span>
             </div>
-            <div class="avatar">A</div>
+
+            <button class="btn-action-top" (click)="openChangePasswordModal()" title="Change Password">
+              🔑 Password
+            </button>
+
+            <button class="btn-action-top btn-logout" (click)="onLogout()" title="Sign Out">
+              🚪 Logout
+            </button>
           </div>
         </header>
 
@@ -161,11 +179,188 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
       </div>
       <div class="sidebar-backdrop" *ngIf="isSidebarOpen && isSmallScreen" (click)="toggleSidebar()"></div>
     </div>
-  `
+
+    <!-- Change Password Modal -->
+    <div class="modal-backdrop" *ngIf="showPasswordModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Change Password</h3>
+          <button type="button" class="btn-close" (click)="closePasswordModal()">&times;</button>
+        </div>
+        <form (ngSubmit)="onChangePasswordSubmit()">
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Current Password *</label>
+              <input type="password" [(ngModel)]="pwdData.oldPassword" name="oldPassword" required placeholder="Enter current password" />
+            </div>
+            <div class="form-group">
+              <label>New Password *</label>
+              <input type="password" [(ngModel)]="pwdData.newPassword" name="newPassword" required placeholder="Enter new password" />
+            </div>
+            <div class="form-group">
+              <label>Confirm New Password *</label>
+              <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" required placeholder="Confirm new password" />
+            </div>
+            <div *ngIf="pwdError" class="modal-error">{{ pwdError }}</div>
+            <div *ngIf="pwdSuccess" class="modal-success">{{ pwdSuccess }}</div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closePasswordModal()">Cancel</button>
+            <button type="submit" class="btn-primary" [disabled]="isChangingPwd">
+              {{ isChangingPwd ? 'Updating...' : 'Update Password' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .btn-action-top {
+      background: #334155;
+      color: #F8FAFC;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.15);
+      color: #EF4444;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-card {
+      background: #1E293B;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 400px;
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h3 {
+      margin: 0;
+      color: #F8FAFC;
+      font-size: 16px;
+    }
+    .btn-close {
+      background: none;
+      border: none;
+      color: #94A3B8;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .modal-body {
+      padding: 20px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      color: #CBD5E1;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0F172A;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #F8FAFC;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .modal-error {
+      color: #EF4444;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+    .modal-success {
+      color: #10B981;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+    .modal-footer {
+      padding: 14px 20px;
+      background: #0F172A;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      background: #334155;
+      color: #F8FAFC;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  `]
 })
 export class ShellComponent implements OnInit {
   isSidebarOpen = true;
   isSmallScreen = false;
+
+  showPasswordModal = false;
+  isChangingPwd = false;
+  pwdError = '';
+  pwdSuccess = '';
+  confirmPassword = '';
+
+  pwdData = {
+    username: '',
+    oldPassword: '',
+    newPassword: ''
+  };
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  get username(): string {
+    return this.authService.currentUserValue?.username || 'admin';
+  }
+
+  get userRole(): string {
+    const r = this.authService.currentUserValue?.role;
+    if (r === 'ROLE_ADMIN' || r === 'ADMIN') return 'Admin';
+    return 'Staff';
+  }
+
+  get isAdmin(): boolean {
+    return this.authService.isAdmin;
+  }
 
   ngOnInit(): void {
     this.isSmallScreen = window.matchMedia('(max-width: 900px)').matches;
@@ -201,5 +396,54 @@ export class ShellComponent implements OnInit {
   onSearch(event: Event): void {
     const q = (event.target as HTMLInputElement).value.toLowerCase();
     console.log('Search:', q);
+  }
+
+  onLogout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  openChangePasswordModal(): void {
+    this.showPasswordModal = true;
+    this.pwdError = '';
+    this.pwdSuccess = '';
+    this.pwdData = {
+      username: this.username,
+      oldPassword: '',
+      newPassword: ''
+    };
+    this.confirmPassword = '';
+  }
+
+  closePasswordModal(): void {
+    this.showPasswordModal = false;
+  }
+
+  onChangePasswordSubmit(): void {
+    if (!this.pwdData.oldPassword || !this.pwdData.newPassword) {
+      this.pwdError = 'Please enter both current and new password.';
+      return;
+    }
+
+    if (this.pwdData.newPassword !== this.confirmPassword) {
+      this.pwdError = 'New password and confirmation do not match.';
+      return;
+    }
+
+    this.isChangingPwd = true;
+    this.pwdError = '';
+    this.pwdSuccess = '';
+
+    this.authService.changePassword(this.pwdData).subscribe({
+      next: () => {
+        this.isChangingPwd = false;
+        this.pwdSuccess = 'Password changed successfully!';
+        setTimeout(() => this.closePasswordModal(), 1200);
+      },
+      error: (err) => {
+        this.isChangingPwd = false;
+        this.pwdError = typeof err.error === 'string' ? err.error : (err.error?.message || 'Could not update password.');
+      }
+    });
   }
 }

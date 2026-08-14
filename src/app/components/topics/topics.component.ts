@@ -145,7 +145,10 @@ interface Breadcrumb { label: string; action?: () => void; }
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.3rem;">
                   {{ getActiveGradeName() }} &bull; {{ getActiveSubjectName() }}
                 </div>
-                <div class="metric-footer" style="color:var(--primary); margin-top:0.75rem;">Drill into Units &rarr;</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+                  <div class="metric-footer" style="color:var(--primary); margin:0;">Drill into Units &rarr;</div>
+                  <button class="icon-btn" title="Delete Topic" (click)="$event.stopPropagation(); deleteTopic(t.id)">🗑️</button>
+                </div>
               </div>
             }
             @if (topics.length === 0) {
@@ -367,5 +370,13 @@ export class TopicsComponent implements OnInit {
     if (!this.formSubjectId) return;
     this.api.createTopic(this.formSubjectId, { name: this.formName, topicNumber: this.formTopicNumber })
       .subscribe(t => { this.topics.push(t); this.showForm = false; });
+  }
+
+  deleteTopic(id: number) {
+    if (confirm('WARNING: Deleting this topic will PERMANENTLY delete all its units, concepts, questions, and options for this subject/grade! Continue?')) {
+      this.api.deleteTopic(id).subscribe(() => {
+        this.topics = this.topics.filter(t => t.id !== id);
+      });
+    }
   }
 }

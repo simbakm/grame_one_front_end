@@ -257,9 +257,14 @@ interface TopicGroup {
                                         💡 Concept: {{ getConceptName(q) || 'General' }}
                                       </span>
                                     </div>
-                                    <button class="btn btn-secondary" style="padding:0.3rem 0.75rem; font-size:0.8rem;" (click)="openEditModal(q)">
-                                      ✏️ Edit Question
-                                    </button>
+                                    <div style="display:flex; gap:0.5rem;">
+                                      <button class="btn btn-secondary" style="padding:0.3rem 0.75rem; font-size:0.8rem;" (click)="openEditModal(q)">
+                                        ✏️ Edit Question
+                                      </button>
+                                      <button class="btn btn-secondary" style="padding:0.3rem 0.75rem; font-size:0.8rem; background:rgba(239,68,68,0.15); color:#ef4444; border-color:rgba(239,68,68,0.3);" (click)="deleteQuestion(q.id)">
+                                        🗑️ Delete
+                                      </button>
+                                    </div>
                                   </div>
 
                                   <!-- Reading Story -->
@@ -672,6 +677,15 @@ export class QuestionsComponent implements OnInit {
 
   cancelEdit() {
     this.editingQuestionId = null;
+  }
+
+  deleteQuestion(id: number) {
+    if (confirm('Delete this question and all its options?')) {
+      this.api.deleteQuestion(id).subscribe(() => {
+        this.questions = this.questions.filter(q => q.id !== id);
+        this.applyFilter();
+      });
+    }
   }
 
   getDifficultyClass(d: string) { return d === 'EASY' ? 'badge-success' : d === 'HARD' ? 'badge-danger' : 'badge-warning'; }

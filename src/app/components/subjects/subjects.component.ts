@@ -121,7 +121,10 @@ interface Breadcrumb { label: string; action?: () => void; }
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.3rem;">
                   Language: {{ subject.language || 'English' }} &bull; Questions: {{ subject.questionsCount || 0 }}
                 </div>
-                <div class="metric-footer" style="color:var(--primary); margin-top:0.75rem;">View Topics &rarr;</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
+                  <div class="metric-footer" style="color:var(--primary); margin:0;">View Topics &rarr;</div>
+                  <button class="icon-btn" title="Delete Subject" (click)="$event.stopPropagation(); deleteSubject(subject.id)">🗑️</button>
+                </div>
               </div>
             }
             @if (filteredSubjects.length === 0) {
@@ -337,5 +340,14 @@ export class SubjectsComponent implements OnInit {
     if (!this.formGradeId) return;
     this.api.createSubject(this.formGradeId, { name: this.formName, code: this.formCode, language: this.formLang })
       .subscribe(s => { this.subjects.push(s); this.filteredSubjects = this.subjects; this.showForm = false; });
+  }
+
+  deleteSubject(id: number) {
+    if (confirm('WARNING: Deleting this subject will PERMANENTLY delete all its topics, units, concepts, questions, and options for this grade! Continue?')) {
+      this.api.deleteSubject(id).subscribe(() => {
+        this.subjects = this.subjects.filter(s => s.id !== id);
+        this.filteredSubjects = this.filteredSubjects.filter(s => s.id !== id);
+      });
+    }
   }
 }
