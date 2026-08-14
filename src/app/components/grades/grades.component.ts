@@ -158,7 +158,7 @@ interface Breadcrumb { label: string; action?: () => void; }
             @for (sub of subjects; track sub.id) {
               <div class="metric-card" (click)="drillToTopics(sub)" style="cursor:pointer;">
                 <div class="metric-top">
-                  <span class="metric-title">{{ sub.code }}</span>
+                  <span class="metric-title">{{ activeGrade?.name || 'Subject' }}</span>
                   <div style="display:flex; gap:0.4rem;" (click)="$event.stopPropagation()">
                     <button class="action-btn action-btn-delete" title="Delete subject" (click)="requestDeleteSubject(sub.id)">
                       <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
