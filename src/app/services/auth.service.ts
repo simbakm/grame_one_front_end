@@ -81,4 +81,8 @@ export class AuthService {
   deleteUser(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/users/${id}`);
   }
+
+  updateUser(id: number, data: { email?: string; role?: string; password?: string }): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/users/${id}`, data);
+  }
 }

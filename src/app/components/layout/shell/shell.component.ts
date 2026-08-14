@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
@@ -157,18 +157,34 @@ import { AuthService } from '../../../services/auth.service';
           </div>
 
           <div class="user-profile">
-            <div class="status-indicator">
-              <span class="dot-online"></span>
-              <span>{{ username }} ({{ userRole }})</span>
+            <div class="user-avatar-wrap" (click)="toggleUserMenu($event)">
+              <div class="user-avatar" title="{{ username }} ({{ userRole }})">
+                {{ username.charAt(0).toUpperCase() }}
+              </div>
+              <!-- Dropdown menu -->
+              <div class="user-dropdown" *ngIf="showUserMenu" (click)="$event.stopPropagation()">
+                <div class="dropdown-user-info">
+                  <div class="dropdown-avatar">{{ username.charAt(0).toUpperCase() }}</div>
+                  <div>
+                    <div class="dropdown-username">{{ username }}</div>
+                    <div class="dropdown-role">{{ userRole }}</div>
+                  </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item" (click)="openChangePasswordModal(); showUserMenu = false">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                  </svg>
+                  Change Password
+                </button>
+                <button class="dropdown-item dropdown-item-danger" (click)="onLogout()">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                  </svg>
+                  Logout
+                </button>
+              </div>
             </div>
-
-            <button class="btn-action-top" (click)="openChangePasswordModal()" title="Change Password">
-              🔑 Password
-            </button>
-
-            <button class="btn-action-top btn-logout" (click)="onLogout()" title="Sign Out">
-              🚪 Logout
-            </button>
           </div>
         </header>
 
@@ -215,21 +231,106 @@ import { AuthService } from '../../../services/auth.service';
     </div>
   `,
   styles: [`
-    .btn-action-top {
-      background: #334155;
-      color: #F8FAFC;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-left: 8px;
+    /* ── User avatar circle + dropdown ── */
+    .user-profile {
+      position: relative;
+      flex-shrink: 0;
     }
-    .btn-logout {
-      background: rgba(239, 68, 68, 0.15);
+    .user-avatar-wrap {
+      position: relative;
+      cursor: pointer;
+    }
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      user-select: none;
+      box-shadow: 0 0 0 3px rgba(16,185,129,0.25);
+      transition: box-shadow 0.2s;
+    }
+    .user-avatar:hover {
+      box-shadow: 0 0 0 4px rgba(16,185,129,0.45);
+    }
+    .user-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      min-width: 220px;
+      background: #1E293B;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 500;
+      overflow: hidden;
+      animation: dropIn 0.15s ease;
+    }
+    @keyframes dropIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .dropdown-user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+    }
+    .dropdown-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .dropdown-username {
+      color: #F8FAFC;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .dropdown-role {
+      color: #64748B;
+      font-size: 12px;
+    }
+    .dropdown-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px 16px;
+      background: none;
+      border: none;
+      color: #CBD5E1;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s;
+    }
+    .dropdown-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: #F8FAFC;
+    }
+    .dropdown-item-danger {
       color: #EF4444;
-      border-color: rgba(239, 68, 68, 0.3);
+    }
+    .dropdown-item-danger:hover {
+      background: rgba(239,68,68,0.1);
+      color: #EF4444;
     }
     .modal-backdrop {
       position: fixed;
@@ -331,6 +432,8 @@ export class ShellComponent implements OnInit {
   isSidebarOpen = true;
   isSmallScreen = false;
 
+  showUserMenu = false;
+
   showPasswordModal = false;
   isChangingPwd = false;
   pwdError = '';
@@ -345,7 +448,8 @@ export class ShellComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private elRef: ElementRef
   ) {}
 
   get username(): string {
@@ -373,6 +477,18 @@ export class ShellComponent implements OnInit {
   onResize(): void {
     this.isSmallScreen = window.matchMedia('(max-width: 900px)').matches;
     this.isSidebarOpen = !this.isSmallScreen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (this.showUserMenu && !this.elRef.nativeElement.querySelector('.user-avatar-wrap')?.contains(event.target as Node)) {
+      this.showUserMenu = false;
+    }
+  }
+
+  toggleUserMenu(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showUserMenu = !this.showUserMenu;
   }
 
   toggleSidebar(): void {
