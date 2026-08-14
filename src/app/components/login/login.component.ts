@@ -31,6 +31,7 @@ import { AuthService } from '../../services/auth.service';
                 [(ngModel)]="username"
                 required
                 placeholder="Enter your username"
+                autocomplete="username"
                 [disabled]="isLoading"
               />
             </div>
@@ -49,6 +50,7 @@ import { AuthService } from '../../services/auth.service';
                 [(ngModel)]="password"
                 required
                 placeholder="Enter your password"
+                autocomplete="current-password"
                 [disabled]="isLoading"
               />
             </div>
@@ -68,10 +70,6 @@ import { AuthService } from '../../services/auth.service';
             </span>
           </button>
         </form>
-
-        <div class="login-footer">
-          <p>Default credentials: <strong>admin</strong> / <strong>admin123</strong></p>
-        </div>
       </div>
     </div>
   `,
