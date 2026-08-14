@@ -12,6 +12,37 @@ interface Breadcrumb { label: string; action?: () => void; }
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
+    <!-- Toast Notification -->
+    <div class="toast" [class.toast-visible]="toast.visible" [class.toast-error]="toast.error">
+      <span class="toast-icon">{{ toast.error ? '✗' : '✓' }}</span>
+      {{ toast.message }}
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div class="modal-backdrop" *ngIf="showDeleteModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-warning-icon">
+            <svg width="28" height="28" fill="none" stroke="#EF4444" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+          </div>
+          <h3 class="modal-title-danger">Confirm Delete</h3>
+        </div>
+        <div class="modal-body">
+          <p class="delete-warning-text">⚠️ You are about to permanently delete this subject and <strong>all its associated data</strong> (topics, units, concepts and questions).</p>
+          <p class="delete-warning-text-bold">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-modal-cancel" (click)="cancelDelete()">Cancel</button>
+          <button class="btn-modal-delete" (click)="confirmDelete()" [disabled]="isDeleting">
+            {{ isDeleting ? 'Deleting...' : 'Yes, Delete' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="content-header">
       <div>
         <div class="breadcrumbs">Academic Hierarchy &rsaquo; Subject Management &amp; Drilldown</div>
@@ -108,23 +139,24 @@ interface Breadcrumb { label: string; action?: () => void; }
         </div>
       } @else {
 
-        <!-- SUBJECTS CARDS GRID -->
+        <!-- SUBJECTS CARDS GRID — compact, matches grade cards -->
         @if (currentLevel === 'subjects') {
           <div class="metrics-grid">
             @for (subject of filteredSubjects; track subject.id) {
               <div class="metric-card" (click)="drillToTopics(subject)" style="cursor:pointer;">
                 <div class="metric-top">
-                  <span class="metric-title">{{ subject.code }}</span>
-                  <span class="badge badge-info" style="font-size:0.75rem;">{{ subject.grade?.name }}</span>
+                  <span class="metric-title">{{ subject.grade?.name || 'Subject' }}</span>
+                  <div style="display:flex; gap:0.4rem;" (click)="$event.stopPropagation()">
+                    <button class="action-btn action-btn-delete" title="Delete subject" (click)="requestDelete(subject.id)">
+                      <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                <div class="metric-value" style="font-size:1.4rem; margin-top:0.25rem;">{{ subject.name }}</div>
-                <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.3rem;">
-                  Language: {{ subject.language || 'English' }} &bull; Questions: {{ subject.questionsCount || 0 }}
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.75rem;">
-                  <div class="metric-footer" style="color:var(--primary); margin:0;">View Topics &rarr;</div>
-                  <button class="icon-btn" title="Delete Subject" (click)="$event.stopPropagation(); deleteSubject(subject.id)">🗑️</button>
-                </div>
+                <div class="metric-value">{{ subject.name }}</div>
+                <div class="metric-footer">Click to view topics &rarr;</div>
               </div>
             }
             @if (filteredSubjects.length === 0) {
@@ -225,6 +257,109 @@ interface Breadcrumb { label: string; action?: () => void; }
     </div>
   `,
   styles: [`
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1E293B;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #F8FAFC;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .toast.toast-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast-icon { font-size: 16px; }
+    .toast.toast-error { border-color: rgba(239,68,68,0.4); }
+    .toast.toast-error .toast-icon { color: #EF4444; }
+    .toast:not(.toast-error) .toast-icon { color: #10B981; }
+
+    /* ── Delete Confirm Modal ── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1500;
+    }
+    .modal-card {
+      background: #1E293B;
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 420px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .modal-header {
+      padding: 20px 24px 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .modal-warning-icon {
+      flex-shrink: 0;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(239,68,68,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-title-danger { margin: 0; color: #EF4444; font-size: 18px; font-weight: 700; }
+    .modal-body { padding: 16px 24px; }
+    .delete-warning-text { color: #CBD5E1; font-size: 14px; margin: 0 0 10px; line-height: 1.6; }
+    .delete-warning-text-bold {
+      color: #EF4444;
+      font-size: 14px;
+      font-weight: 800;
+      margin: 0;
+      border: 2px solid rgba(239,68,68,0.4);
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: rgba(239,68,68,0.08);
+    }
+    .modal-footer {
+      padding: 16px 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .btn-modal-cancel { background: #334155; color: #F8FAFC; border: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-modal-delete { background: #EF4444; color: #fff; border: none; padding: 9px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .btn-modal-delete:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* ── Red delete icon button ── */
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .action-btn:hover { opacity: 0.8; transform: scale(1.1); }
+    .action-btn-delete { background: rgba(239,68,68,0.18); color: #EF4444; }
+
+    /* ── Spinner ── */
     .spin-icon { display:inline-block; animation: spin 1s linear infinite; }
     @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
     .skeleton-card { animation: pulse 1.5s ease-in-out infinite; }
@@ -253,6 +388,15 @@ export class SubjectsComponent implements OnInit {
   activeTopic: Topic | null = null;
   activeUnit: Unit | null = null;
 
+  // Delete confirm
+  showDeleteModal = false;
+  pendingDeleteId: number | null = null;
+  isDeleting = false;
+
+  // Toast
+  toast = { visible: false, message: '', error: false };
+  private toastTimer: any;
+
   constructor(private api: ApiService) {}
 
   ngOnInit() {
@@ -263,6 +407,12 @@ export class SubjectsComponent implements OnInit {
       this.filteredSubjects = s;
       this.isLoading = false;
     });
+  }
+
+  showToast(message: string, error = false) {
+    clearTimeout(this.toastTimer);
+    this.toast = { visible: true, message, error };
+    this.toastTimer = setTimeout(() => { this.toast.visible = false; }, 3000);
   }
 
   filterByGrade(gradeId: number | null) {
@@ -283,10 +433,7 @@ export class SubjectsComponent implements OnInit {
       { label: 'All Subjects', action: () => this.resetToSubjects() },
       { label: subject.name }
     ];
-    this.api.getTopics(subject.id).subscribe(t => {
-      this.topics = t;
-      this.isLoading = false;
-    });
+    this.api.getTopics(subject.id).subscribe(t => { this.topics = t; this.isLoading = false; });
   }
 
   drillToUnits(topic: Topic) {
@@ -298,10 +445,7 @@ export class SubjectsComponent implements OnInit {
       { label: this.activeSubject?.name || 'Subject', action: () => this.drillToTopics(this.activeSubject!) },
       { label: topic.name }
     ];
-    this.api.getUnits(topic.id).subscribe(u => {
-      this.units = u;
-      this.isLoading = false;
-    });
+    this.api.getUnits(topic.id).subscribe(u => { this.units = u; this.isLoading = false; });
   }
 
   drillToConcepts(unit: Unit) {
@@ -314,10 +458,7 @@ export class SubjectsComponent implements OnInit {
       { label: this.activeTopic?.name || 'Topic', action: () => this.drillToUnits(this.activeTopic!) },
       { label: unit.name }
     ];
-    this.api.getConcepts(unit.id).subscribe(c => {
-      this.concepts = c;
-      this.isLoading = false;
-    });
+    this.api.getConcepts(unit.id).subscribe(c => { this.concepts = c; this.isLoading = false; });
   }
 
   drillToQuestions(concept: Concept) {
@@ -330,10 +471,7 @@ export class SubjectsComponent implements OnInit {
       { label: this.activeUnit?.name || 'Unit', action: () => this.drillToConcepts(this.activeUnit!) },
       { label: concept.name }
     ];
-    this.api.getQuestions({ conceptId: concept.id }).subscribe(q => {
-      this.questions = q;
-      this.isLoading = false;
-    });
+    this.api.getQuestions({ conceptId: concept.id }).subscribe(q => { this.questions = q; this.isLoading = false; });
   }
 
   saveSubject() {
@@ -342,12 +480,35 @@ export class SubjectsComponent implements OnInit {
       .subscribe(s => { this.subjects.push(s); this.filteredSubjects = this.subjects; this.showForm = false; });
   }
 
-  deleteSubject(id: number) {
-    if (confirm('WARNING: Deleting this subject will PERMANENTLY delete all its topics, units, concepts, questions, and options for this grade! Continue?')) {
-      this.api.deleteSubject(id).subscribe(() => {
+  requestDelete(id: number) {
+    this.pendingDeleteId = id;
+    this.showDeleteModal = true;
+  }
+
+  cancelDelete() {
+    this.showDeleteModal = false;
+    this.pendingDeleteId = null;
+  }
+
+  confirmDelete() {
+    if (!this.pendingDeleteId) return;
+    this.isDeleting = true;
+    const id = this.pendingDeleteId;
+    this.api.deleteSubject(id).subscribe({
+      next: () => {
         this.subjects = this.subjects.filter(s => s.id !== id);
         this.filteredSubjects = this.filteredSubjects.filter(s => s.id !== id);
-      });
-    }
+        this.isDeleting = false;
+        this.showDeleteModal = false;
+        this.pendingDeleteId = null;
+        this.showToast('Subject deleted successfully.');
+      },
+      error: () => {
+        this.isDeleting = false;
+        this.showDeleteModal = false;
+        this.pendingDeleteId = null;
+        this.showToast('Failed to delete subject.', true);
+      }
+    });
   }
 }
