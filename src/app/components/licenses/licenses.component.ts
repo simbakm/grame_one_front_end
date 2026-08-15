@@ -106,11 +106,25 @@ import { ApiService, License } from '../../services/api.service';
             }
           </div>
 
-          <button class="btn btn-primary" style="width:100%; justify-content:center; margin-top:1.25rem;"
-                  [disabled]="genType === 'FREE' && !dateConfirmed"
+          <button class="btn btn-primary"
+                  style="width:100%; justify-content:center; margin-top:1.25rem; gap:0.6rem; transition:opacity 0.2s;"
+                  [disabled]="isGenerating || (genType === 'FREE' && !dateConfirmed)"
+                  [style.opacity]="isGenerating ? '0.85' : '1'"
                   (click)="generateLicense()">
-            🚀 Generate {{ isBulk ? bulkCount + ' Codes' : 'Code' }}
+            @if (isGenerating) {
+              <span style="display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.75s linear infinite;"></span>
+              Processing...
+            } @else {
+              🚀 Generate {{ isBulk ? bulkCount + ' Codes' : 'Code' }}
+            }
           </button>
+
+          @if (isGenerating) {
+            <div style="margin-top:0.75rem;padding:0.7rem 1rem;background:rgba(16,185,129,0.08);border:1px solid var(--primary);border-radius:8px;display:flex;align-items:center;gap:0.6rem;">
+              <span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(16,185,129,0.3);border-top-color:var(--primary);border-radius:50%;animation:spin 0.75s linear infinite;flex-shrink:0;"></span>
+              <span style="font-size:0.82rem;color:var(--primary);font-weight:600;">Generating {{ isBulk ? bulkCount + ' license code(s)' : 'license code' }}... Please wait.</span>
+            </div>
+          }
 
           @if (generatedCodes.length > 0) {
             <div style="margin-top:1.25rem; padding:1rem; background:var(--badge-success-bg); border:1px solid var(--primary); border-radius:8px;">
@@ -196,6 +210,7 @@ export class LicensesComponent implements OnInit {
   genValidUntil = '2026-12-31T23:59';
   dateConfirmed = false;
   generatedCodes: string[] = [];
+  isGenerating = false;
 
   get ordinaryCount() { return this.licenses.filter(l => l.licenseType !== 'FREE').length; }
   get freeCount() { return this.licenses.filter(l => l.licenseType === 'FREE').length; }
@@ -224,14 +239,18 @@ export class LicensesComponent implements OnInit {
 
   generateLicense() {
     this.generatedCodes = [];
+    this.isGenerating = true;
+
     if (this.isBulk) {
       this.api.generateBulkLicenses(this.bulkCount, this.genDuration, this.genType, this.genValidUntil).subscribe({
         next: (list) => {
+          this.isGenerating = false;
           this.generatedCodes = list.map(l => l.activationCode);
           this.licenses.unshift(...list);
           this.filterLicenses(this.filterStatus);
         },
         error: () => {
+          this.isGenerating = false;
           for (let i = 0; i < this.bulkCount; i++) {
             const mockCode = `GRAME-${this.genType === 'FREE' ? 'FREE' : 'BULK'}-${Math.random().toString(36).substring(2,6).toUpperCase()}`;
             this.generatedCodes.push(mockCode);
@@ -250,11 +269,13 @@ export class LicensesComponent implements OnInit {
     } else {
       this.api.generateLicense(this.genDuration, this.genType, this.genValidUntil).subscribe({
         next: (lic) => {
+          this.isGenerating = false;
           this.generatedCodes = [lic.activationCode];
           this.licenses.unshift(lic);
           this.filterLicenses(this.filterStatus);
         },
         error: () => {
+          this.isGenerating = false;
           const mockCode = `GRAME-${this.genType === 'FREE' ? 'FREE' : 'SINGLE'}-${Math.random().toString(36).substring(2,6).toUpperCase()}`;
           this.generatedCodes = [mockCode];
           this.licenses.unshift({
